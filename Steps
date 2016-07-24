@@ -1,0 +1,94 @@
+-- 1)  Create an inbound spool dorectory to place source file
+
+mkdir /home/acadgild/flume/flume_spool/
+
+--2) Creation of hdfs target directory to place source  place after flume import
+
+hadoop fs -mkdir /flume_import
+
+--3) Creation of hdfs directory to archive processed file
+
+hadoop fs -mkdir /flume_processed
+
+--4) Triggering of flume conf file Flume.conf
+
+flume-ng agent --name flumeagent --conf-file /usr/local/flume/conf/Flume.conf
+
+
+--5) Trigger the pig script to process the file
+
+pig PigscriptForObjective.pig
+
+--6) Move the file to processed directory
+
+hadoop fs -mv /flume_import/*  /flume_processed
+
+
+--7) Create database table in mysql
+
+sudo service mysqld start 
+
+create table Fullobjective 
+(
+
+State_Name varchar(50),
+District_Name varchar(50),
+Project_Objectives_IHHL_BPL varchar(50) ,
+Project_Objectives_IHHL_APL varchar(50),
+Project_Objectives_IHHL_TOTAL varchar(50),
+Project_Objectives_SCW varchar(50),
+Project_Objectives_School_Toilets varchar(50),
+Project_Objectives_Anganwadi_Toilets varchar(50),
+Project_Objectives_RSM varchar(50),
+Project_Objectives_PC varchar(50),
+Project_Performance_IHHL_BPL varchar(50),
+Project_Performance_IHHL_APL varchar(50),
+Project_Performance_IHHL_TOTAL varchar(50),
+Project_Performance_SCW varchar(50),
+Project_Performance_School_Toilets varchar(50),
+Project_Performance_Anganwadi_Toilets varchar(50),
+Project_Performance_RSM varchar(50),
+Project_Performance_PC varchar(50)
+);
+
+create table Targetobjective 
+(
+
+State_Name varchar(50),
+District_Name varchar(50),
+Project_Objectives_IHHL_BPL varchar(50) ,
+Project_Objectives_IHHL_APL varchar(50),
+Project_Objectives_IHHL_TOTAL varchar(50),
+Project_Objectives_SCW varchar(50),
+Project_Objectives_School_Toilets varchar(50),
+Project_Objectives_Anganwadi_Toilets varchar(50),
+Project_Objectives_RSM varchar(50),
+Project_Objectives_PC varchar(50),
+Project_Performance_IHHL_BPL varchar(50),
+Project_Performance_IHHL_APL varchar(50),
+Project_Performance_IHHL_TOTAL varchar(50),
+Project_Performance_SCW varchar(50),
+Project_Performance_School_Toilets varchar(50),
+Project_Performance_Anganwadi_Toilets varchar(50),
+Project_Performance_RSM varchar(50),
+Project_Performance_PC varchar(50)
+);
+
+
+--7)Execute sqoop command to load data 
+
+sqoop export --connect jdbc:mysql://localhost/mysql --username 'root' -P --table 'Fullobjective' --export-dir '/user/acadgild/Fullobjective' --input-fields-terminated-by ',' -m 1; 
+
+sqoop export --connect jdbc:mysql://localhost/mysql --username 'root' -P --table 'Targetobjective' --export-dir '/user/acadgild/Targetobjective' --input-fields-terminated-by ',' -m 1; 
+
+
+--8) Removing the pig output
+
+hadoop fs -rm /user/acadgild/Fullobjective/*;
+hadoop fs -rm /user/acadgild/Targetobjective/*;
+hadoop fs -rmdir /user/acadgild/Targetobjective;
+hadoop fs -rmdir /user/acadgild/Fullobjective;
+
+
+
+
